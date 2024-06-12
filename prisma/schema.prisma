@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                  String              @id @default(uuid()) @db.Uuid
+  email               String              @unique
+  password            String
+  rol                 Role                @default(USER)
+  nombre              String
+  apellido            String
+  dni                 Int                 @unique
+  telefono            String?
+  direccion           String?
+  ciudad              String?
+  codigo_postal       String?
+  empresa_id          String?             @db.Uuid
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  contrato            Contrato[]
+  empresa             Empresa?            @relation(fields: [empresa_id], references: [id])
+  solicitudesLicencia SolicitudLicencia[]
+}
+
+model Empresa {
+  id      String    @id @default(uuid()) @db.Uuid
+  name    String
+  cuit    Int       @unique
+  webSite String?
+  city    String
+  country String
+  address String
+  phone   String
+  email   String
+  sector  String
+  Usuario Usuario[]
+}
+
+model Contrato {
+  id           String   @id @default(uuid()) @db.Uuid
+  salario      Float
+  descripcion  String
+  fecha_inicio DateTime @default(now())
+  fecha_fin    DateTime
+  status       Status   @default(ACTIVO)
+  Cargo        Cargo?   @relation(fields: [cargoId], references: [id])
+  cargoId      String?  @db.Uuid
+  Usuario      Usuario? @relation(fields: [usuarioId], references: [id])
+  usuarioId    String?  @db.Uuid
+}
+
+model SolicitudLicencia {
+  id           String   @id @default(uuid()) @db.Uuid
+  estado       Estado   @default(PENDIENTE)
+  motivo       String
+  tipo         Tipo
+  fecha_inicio DateTime @default(now())
+  fecha_fin    DateTime
+  Usuario      Usuario? @relation(fields: [usuarioId], references: [id])
+  usuarioId    String?  @db.Uuid
+}
+
+model Cargo {
+  id          String     @id @default(uuid()) @db.Uuid
+  nombre      String
+  descripcion String
+  contrato    Contrato[]
+}
+
+enum Role {
+  ADMIN
+  EMPLEADO
+  USER
+}
+
+enum Status {
+  ACTIVO
+  INACTIVO
+}
+
+enum Estado {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  CANCELADO
+}
+
+enum Tipo {
+  VACACIONES
+  ENFERMEDAD
+  IMPONDERABLE
+  OTROS
+}
